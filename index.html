@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Notcoin</title>
+    <link rel="icon" href="https://t.me/notcoin.png">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'SF Pro Display', 'Segoe UI', Tahoma, sans-serif;
+            background: #000000;
+            min-height: 100vh;
+            overflow: hidden;
+            color: white;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            background: radial-gradient(ellipse at center, #1a1a1a 0%, #000000 100%);
+        }
+
+        /* هدر بالا - مثل نات کوین اصلی */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 20px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #000000 0%, #333333 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            border: 1px solid #444;
+        }
+
+        .logo-text {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .balance-display {
+            text-align: left;
+        }
+
+        .balance-amount {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .balance-label {
+            font-size: 10px;
+            opacity: 0.5;
+            text-align: left;
+        }
+
+        /* نوار انرژی مثل نات کوین */
+        .energy-section {
+            padding: 8px 20px;
+            background: rgba(0,0,0,0.3);
+        }
+
+        .energy-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-bottom: 5px;
+            opacity: 0.7;
+        }
+
+        .energy-bar {
+            width: 100%;
+            height: 4px;
+            background: #333;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffffff, #cccccc);
+            border-radius: 2px;
+            transition: width 0.3s;
+        }
+
+        /* ناحیه اصلی سکه */
+        .main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* سکه اصلی نات کوین */
+        .coin-wrapper {
+            position: relative;
+            width: 280px;
+            height: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* حلقه‌های نوری */
+        .glow-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: ringExpand 3s ease-out infinite;
+        }
+
+        .glow-ring:nth-child(1) {
+            width: 280px;
+            height: 280px;
+            animation-delay: 0s;
+        }
+
+        .glow-ring:nth-child(2) {
+            width: 280px;
+            height: 280px;
+            animation-delay: 1s;
+        }
+
+        .glow-ring:nth-child(3) {
+            width: 280px;
+            height: 280px;
+            animation-delay: 2s;
+        }
+
+        @keyframes ringExpand {
+            0% {
+                transform: scale(1);
+                opacity: 0.8;
+                border-color: rgba(255,255,255,0.3);
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+                border-color: rgba(255,255,255,0);
+            }
+        }
+
+        /* خود سکه - لوگوی نات کوین */
+        .coin {
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #4a4a4a 0%, #1a1a1a 50%, #000000 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            position: relative;
+            box-shadow: 
+                0 0 60px rgba(255,255,255,0.1),
+                0 0 100px rgba(255,255,255,0.05),
+                inset 0 -20px 40px rgba(0,0,0,0.8),
+                inset 0 20px 40px rgba(255,255,255,0.05);
+            transition: transform 0.1s ease;
+            animation: float 3s ease-in-out infinite;
+            border: 2px solid #2a2a2a;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .coin:active {
+            transform: scale(0.92) !important;
+            transition: transform 0.05s;
+        }
+
+        /* درخش بالای سکه */
+        .coin::before {
+            content: '';
+            position: absolute;
+            top: 8%;
+            left: 20%;
+            width: 30%;
+            height: 20%;
+            background: radial-gradient(ellipse, rgba(255,255,255,0.3) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(15px);
+        }
+
+        /* حرف N وسط سکه */
+        .coin-letter {
+            font-size: 110px;
+            font-weight: 900;
+            color: #ffffff;
+            text-shadow: 
+                0 0 20px rgba(255,255,255,0.5),
+                0 4px 8px rgba(0,0,0,0.8);
+            font-family: 'SF Pro Display', Arial, sans-serif;
+            letter-spacing: -8px;
+        }
+
+        /* شمارنده کلیک شناور */
+        .float-num {
+            position: absolute;
+            font-size: 32px;
+            font-weight: 900;
+            color: #ffffff;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(255,255,255,0.8);
+            animation: floatUp 1.5s ease-out forwards;
+            z-index: 100;
+        }
+
+        @keyframes floatUp {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(0.5);
+            }
+            50% {
+                opacity: 1;
+                transform: translate(var(--mx), -60px) scale(1.2);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--mx), -150px) scale(0.8);
+            }
+        }
+
+        /* ذرات */
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #ffffff;
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 8px rgba(255,255,255,0.8);
+            animation: particleFly 1s ease-out forwards;
+        }
+
+        @keyframes particleFly {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--px), var(--py)) scale(0);
+            }
+        }
+
+        /* آمار پایین سکه */
+        .stats-row {
+            display: flex;
+            gap: 30px;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-num {
+            font-size: 22px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+
+        .stat-lbl {
+            font-size: 11px;
+            opacity: 0.5;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* نوار پایین - دکمه‌های اصلی */
+        .bottom-bar {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px 20px;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid #222;
+        }
+
+        .nav-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 10px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:active {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .nav-btn .icon {
+            font-size: 22px;
+        }
+
+        .nav-btn.active {
+            color: #ffffff;
+        }
+
+        /* دکمه شناور Boost */
+        .float-boost {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffffff 0%, #cccccc 100%);
+            border: none;
+            color: #000;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255,255,255,0.3);
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .float-boost:active {
+            transform: scale(0.9);
+        }
+
+        /* مدال */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: #1a1a1a;
+            border-radius: 24px;
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            border: 1px solid #333;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .upgrade-card {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upgrade-info h3 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .upgrade-info p {
+            font-size: 11px;
+            opacity: 0.6;
+        }
+
+        .upgrade-btn {
+            background: #ffffff;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .close-btn {
+            width: 100%;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 12px;
+            margin-top: 10px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- هدر بالا -->
+        <div class="top-bar">
+            <div class="logo-section">
+                <div class="logo-icon">🪙</div>
+                <div class="logo-text">Notcoin</div>
+            </div>
+            <div class="balance-display">
+                <div class="balance-amount" id="coins">0</div>
+                <div class="balance-label">سکه</div>
+            </div>
+        </div>
+
+        <!-- نوار انرژی -->
+        <div class="energy-section">
+            <div class="energy-info">
+                <span>⚡ انرژی</span>
+                <span><span id="energy">1000</span> / <span id="maxEnergy">1000</span></span>
+            </div>
+            <div class="energy-bar">
+                <div class="energy-fill" id="energyBar" style="width: 100%"></div>
+            </div>
+        </div>
+
+        <!-- ناحیه اصلی -->
+        <div class="main-area">
+            <div class="coin-wrapper" id="coinWrapper">
+                <div class="glow-ring"></div>
+                <div class="glow-ring"></div>
+                <div class="glow-ring"></div>
+                <div class="coin" id="coin">
+                    <div class="coin-letter">N</div>
+                </div>
+            </div>
+
+            <!-- آمار -->
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-num" id="totalTaps">0</div>
+                    <div class="stat-lbl">کل کلیک</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" id="tapPower">1</div>
+                    <div class="stat-lbl">قدرت</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-num" id="rank">🥉</div>
+                    <div class="stat-lbl">رتبه</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- نوار پایین -->
+        <div class="bottom-bar">
+            <button class="nav-btn active" onclick="showHome()">
+                <span class="icon">🪙</span>
+                <span>کلیک</span>
+            </button>
+            <button class="nav-btn" onclick="showBoost()">
+                <span class="icon">⚡</span>
+                <span>ارتقا</span>
+            </button>
+            <button class="nav-btn" onclick="showLeague()">
+                <span class="icon">🏆</span>
+                <span>لیگ</span>
+            </button>
+            <button class="nav-btn" onclick="showWallet()">
+                <span class="icon">👛</span>
+                <span>کیف</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- دکمه شناور Boost -->
+    <button class="float-boost" onclick="showBoost()">⚡</button>
+
+    <!-- مدال ارتقا -->
+    <div class="modal" id="boostModal">
+        <div class="modal-content">
+            <div class="modal-title">⚡ ارتقا قدرت</div>
+            
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>قدرت کلیک</h3>
+                    <p>هر کلیک +1 سکه بیشتر</p>
+                </div>
+                <button class="upgrade-btn" onclick="upgradePower()">
+                    <span id="powerCost">1K</span> 🪙
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>انرژی</h3>
+                    <p>+500 انرژی بیشتر</p>
+                </div>
+                <button class="upgrade-btn" onclick="upgradeEnergy()">
+                    <span id="energyCost">2K</span> 🪙
+                </button>
+            </div>
+
+            <div class="upgrade-card">
+                <div class="upgrade-info">
+                    <h3>ربات کلیکر</h3>
+                    <p>خودکار کلیک کن!</p>
+                </div>
+                <button class="upgrade-btn" onclick="buyAuto()">
+                    2M 🪙
+                </button>
+            </div>
+
+            <button class="close-btn" onclick="closeModal()">بستن</button>
+        </div>
+    </div>
+
+    <script>
+        // اتصال به تلگرام
+        let tg;
+        if (window.Telegram && window.Telegram.WebApp) {
+            tg = window.Telegram.WebApp;
+            tg.ready();
+            tg.expand();
+        } else {
+            tg = {
+                ready: function(){},
+                expand: function(){},
+                showAlert: function(m){ alert(m); },
+                HapticFeedback: { 
+                    impactOccurred: function(){}, 
+                    notificationOccurred: function(){} 
+                },
+                initDataUnsafe: { user: { id: 0, first_name: 'Player' } }
+            };
+        }
+
+        // متغیرهای بازی
+        let state = {
+            coins: 0,
+            totalTaps: 0,
+            tapPower: 1,
+            energy: 1000,
+            maxEnergy: 1000,
+            boostLevel: 1
+        };
+
+        // بارگذاری
+        function load() {
+            const saved = localStorage.getItem('notcoin_game');
+            if (saved) state = { ...state, ...JSON.parse(saved) };
+            update();
+        }
+
+        function save() {
+            localStorage.setItem('notcoin_game', JSON.stringify(state));
+        }
+
+        // فرمت
+        function fmt(n) {
+            if (n >= 1000000000) return (n/1000000000).toFixed(1) + 'B';
+            if (n >= 1000000) return (n/1000000).toFixed(1) + 'M';
+            if (n >= 1000) return (n/1000).toFixed(1) + 'K';
+            return Math.floor(n).toString();
+        }
+
+        // آپدیت UI
+        function update() {
+            document.getElementById('coins').textContent = fmt(state.coins);
+            document.getElementById('totalTaps').textContent = fmt(state.totalTaps);
+            document.getElementById('tapPower').textContent = fmt(state.tapPower);
+            document.getElementById('energy').textContent = fmt(state.energy);
+            document.getElementById('maxEnergy').textContent = fmt(state.maxEnergy);
+            document.getElementById('powerCost').textContent = fmt(state.boostLevel * 1000);
+
+            // نوار انرژی
+            const pct = Math.max(0, (state.energy / state.maxEnergy) * 100);
+            document.getElementById('energyBar').style.width = pct + '%';
+
+            // رتبه
+            const ranks = [
+                {n: '🥉', min: 0}, {n: '🥈', min: 1000}, {n: '🥇', min: 10000},
+                {n: '💎', min: 50000}, {n: '👑', min: 100000}, {n: '🏆', min: 250000},
+                {n: '⭐', min: 500000}, {n: '🌟', min: 1000000}, {n: '⚡', min: 10000000}
+            ];
+            let rank = '🥉';
+            for (let r of ranks) if (state.totalTaps >= r.min) rank = r.n;
+            document.getElementById('rank').textContent = rank;
+        }
+
+        // کلیک
+        const coin = document.getElementById('coin');
+        const wrapper = document.getElementById('coinWrapper');
+
+        coin.addEventListener('click', function(e) {
+            if (state.energy < state.tapPower) {
+                if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                return;
+            }
+
+            state.coins += state.tapPower;
+            state.totalTaps += 1;
+            state.energy -= state.tapPower;
+
+            if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+
+            // عدد شناور
+            const num = document.createElement('div');
+            num.className = 'float-num';
+            num.textContent = '+' + state.tapPower;
+            const rect = coin.getBoundingClientRect();
+            num.style.left = (e.clientX - rect.left) + 'px';
+            num.style.top = (e.clientY - rect.top) + 'px';
+            num.style.setProperty('--mx', (Math.random() * 60 - 30) + 'px');
+            wrapper.appendChild(num);
+            setTimeout(() => num.remove(), 1500);
+
+            // ذرات
+            for (let i = 0; i < 4; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = (e.clientX - rect.left) + 'px';
+                p.style.top = (e.clientY - rect.top) + 'px';
+                p.style.setProperty('--px', (Math.random() * 80 - 40) + 'px');
+                p.style.setProperty('--py', (Math.random() * -80 - 20) + 'px');
+                wrapper.appendChild(p);
+                setTimeout(() => p.remove(), 1000);
+            }
+
+            update();
+   
