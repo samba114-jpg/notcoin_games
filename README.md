@@ -1,1 +1,1 @@
-# notcoin_games
+# notcoin_game
